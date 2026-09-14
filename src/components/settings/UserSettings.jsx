@@ -26,13 +26,19 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const DEFAULT_COMPANY_ID = 1;
+
 
 
 const UserForm = ({ user, onSave, onCancel }) => {
-  const [formData, setFormData] = useState(user || { name: '', email: '', password: '', role: 'administrador' });
+  const [formData, setFormData] = useState(
+    user || { name: '', email: '', password: '', role: 'administrador', xid_empresa: DEFAULT_COMPANY_ID }
+  );
 
   useEffect(() => {
-    setFormData(user || { name: '', email: '', password: '', role: 'administrador' });
+    setFormData(
+      user || { name: '', email: '', password: '', role: 'administrador', xid_empresa: DEFAULT_COMPANY_ID }
+    );
   }, [user]);
 
   const handleChange = (e) => {
@@ -224,7 +230,7 @@ const UserSettings = ({ openNewUserModal = false }) => {
       }
     } else {
       // Cria a identidade primeiro; a RLS de profiles exige um usuário autenticado.
-      const resolvedCompanyId = await resolveCompanyId();
+      const resolvedCompanyId = user.xid_empresa ?? DEFAULT_COMPANY_ID;
       if (!resolvedCompanyId) {
         throw new Error('Não foi possível identificar a empresa do usuário logado.');
       }

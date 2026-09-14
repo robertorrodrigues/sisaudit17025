@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
 
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const handleSession = useCallback(async (session) => {
@@ -18,6 +19,39 @@ export const AuthProvider = ({ children }) => {
     setUser(session?.user ?? null);
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadProfile = async () => {
+      if (!user?.id) {
+        setProfile(null);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, role, enabled, xid_empresa')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error('Supabase profile load error:', error);
+        setProfile(null);
+        return;
+      }
+
+      setProfile(data);
+    };
+
+    loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     const getSession = async () => {
@@ -83,26 +117,8 @@ export const AuthProvider = ({ children }) => {
             description: error.message || 'Ocorreu um erro inesperado.',
           });
         } else if (data?.user) {
-          try {
-            const profilePayload = {
-              id: data.user.id,
-              email: data.user.email,
-              name: safeOptions.data?.name || data.user.user_metadata?.name || '',
-              role: safeOptions.data?.role || 'administrador',
-              enabled: true,
-              validador: false,
-              xid_empresa: safeOptions.data?.xid_empresa ?? null,
-            };
-
-            const { error: profileError } = await supabase
-              .from('profiles')
-              .upsert(profilePayload, { onConflict: 'id' });
-
-            if (profileError) {
-              console.error('Supabase profile upsert error:', profileError);
-            }
-          } catch (profileErr) {
-            console.error('Unexpected profile upsert error:', profileErr);
+          if (safeOptions.data?.pending_access) {
+            await supabase.auth.signOut();
           }
           // Em projetos com confirmação por e-mail ativada:
           // data.user pode estar null e data.session será null.
@@ -241,12 +257,13 @@ export const AuthProvider = ({ children }) => {
     () => ({
       user,
       session,
+      profile,
       loading,
       signUp,
       signIn,
       signOut,
     }),
-    [user, session, loading, signUp, signIn, signOut]
+    [user, session, profile, loading, signUp, signIn, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,18 +1,20 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, UserPlus, Flame } from 'lucide-react';
+import { UserPlus, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 import { supabase } from '@/lib/customSupabaseClient';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+const TEMPORARY_PASSWORD = '123456';
+
 const Signup = ({ companySlug: companySlugProp }) => {
   const [name, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [companyId, setCompanyId] = useState('');
+  const [companiesLoading, setCompaniesLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { signUp } = useAuth();
@@ -28,20 +30,34 @@ const Signup = ({ companySlug: companySlugProp }) => {
 
   const logoSrc = companySlug ? `/images/${companySlug}/logo.png` : '/images/logoSigas.png';
 
+  useEffect(() => {
+    const loadCompanies = async () => {
+      const { data, error } = await supabase
+        .from('empresa')
+        .select('id, nome')
+        .order('nome', { ascending: true });
+
+      if (error) {
+        toast({
+          title: 'Não foi possível carregar as empresas',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        setCompanies(data || []);
+      }
+      setCompaniesLoading(false);
+    };
+
+    loadCompanies();
+  }, [toast]);
+
   const handleSignup = async (e) => {
     e.preventDefault();
-    if (!email || !password || !confirm || !name) {
+    if (!email || !name || !companyId) {
       toast({
         title: 'Campos obrigatórios',
-        description: 'Preencha nome, email e senha.',
-        variant: 'destructive',
-      });
-      return;
-    }
-    if (password !== confirm) {
-      toast({
-        title: 'Senhas diferentes',
-        description: 'As senhas não coincidem.',
+        description: 'Preencha nome, email e empresa.',
         variant: 'destructive',
       });
       return;
@@ -50,41 +66,31 @@ const Signup = ({ companySlug: companySlugProp }) => {
     setIsLoading(true);
 
     try {
-      const empresaSlugToUse = companySlug || 'gasmetro';
-      const { data: empresaData, error: empresaError } = await supabase
-        .from('empresa')
-        .select('id')
-        .eq('logo', empresaSlugToUse)
-        .maybeSingle();
-
-      if (empresaError || !empresaData?.id) {
-        toast({
-          title: 'Empresa não encontrada',
-          description: 'Não foi possível identificar a empresa para esse cadastro.',
-          variant: 'destructive',
-        });
-        setIsLoading(false);
-        return;
-      }
-
-      const { error } = await signUp(email, password, {
+      const { error } = await signUp(email, TEMPORARY_PASSWORD, {
         data: {
           name,
-          role: 'administrador',
-          xid_empresa: empresaData.id,
+          role: 'atendente',
+          enabled: false,
+          pending_access: true,
+          must_change_password: true,
+          xid_empresa: Number(companyId),
         },
       });
 
       if (!error) {
         toast({
-          title: 'Cadastro realizado!',
-          description: 'Verifique seu email para confirmação, se aplicável.',
+          title: 'Solicitação enviada',
+          description: 'Seu acesso será liberado em breve pelo administrador.',
         });
         navigate(companySlug ? `/${companySlug}/login` : '/login');
       } else {
         toast({
-          title: 'Erro no cadastro',
-          description: error.message || 'Não foi possível criar a conta.',
+          title: /already registered|already exists|user already/i.test(error.message)
+            ? 'Email já cadastrado'
+            : 'Erro no cadastro',
+          description: /already registered|already exists|user already/i.test(error.message)
+            ? 'Esse email já está cadastrado no sistema.'
+            : error.message || 'Não foi possível criar a conta.',
           variant: 'destructive',
         });
       }
@@ -144,34 +150,21 @@ const Signup = ({ companySlug: companySlugProp }) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-300 block mb-2">Senha</label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Sua senha"
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 px-4 flex items-center text-gray-400 hover:text-white"
-              >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-300 block mb-2">Confirmar senha</label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              placeholder="Repita a senha"
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <label className="text-sm font-medium text-gray-300 block mb-2">Empresa</label>
+            <select
+              value={companyId}
+              onChange={(e) => setCompanyId(e.target.value)}
+              disabled={companiesLoading}
+              className="w-full px-4 py-3 bg-slate-800 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            >
+              <option value="">
+                {companiesLoading ? 'Carregando empresas...' : 'Selecione a empresa'}
+              </option>
+              {companies.map((company) => (
+                <option key={company.id} value={company.id}>{company.nome}</option>
+              ))}
+            </select>
           </div>
 
           <Button

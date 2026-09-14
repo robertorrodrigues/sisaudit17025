@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "check:supabase": "set NODE_USE_SYSTEM_CA=1&& node scripts/check-supabase.mjs",
+    "predev": "npm run check:supabase",
     "dev": "vite --host :: --port 3000",
+    "prepreview": "npm run check:supabase",
     "build": "vite build",
     "preview": "vite preview --host :: --port 3000"
   },

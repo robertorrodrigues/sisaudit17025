@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -35,6 +35,7 @@ const allNavigation = [
   { name: 'Técnicos', href: '/tecnicos', icon: Users, roles: ['administrador'] },
   { name: 'Equipamentos', href: '/equipamentos', icon: Package, roles: ['administrador', 'atendente'] },
   { name: 'Validação', href: '/validacao', icon: CheckCircle, roles: ['administrador'] },
+  { name: 'Certificados', href: '/certificados', icon: Award, roles: ['administrador'] },
   { name: 'Relatórios', href: '/relatorios', icon: BarChart3, roles: ['administrador'] },
   { name: 'Configurações', href: '/configuracoes', icon: Settings, roles: ['administrador'] },
 ];
@@ -64,7 +65,14 @@ const Layout = ({ children }) => {
   const [changingPassword, setChangingPassword] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const mustChangePassword = user?.user_metadata?.must_change_password === true;
+
+  useEffect(() => {
+    if (user?.user_metadata?.must_change_password === true) {
+      setShowChangePasswordModal(true);
+    }
+  }, [user?.user_metadata?.must_change_password]);
 
   const openChangePasswordModal = () => {
     setPasswordError('');
@@ -79,6 +87,10 @@ const Layout = ({ children }) => {
   };
 
   const closeChangePasswordModal = () => {
+    if (mustChangePassword) {
+      return;
+    }
+
     setShowChangePasswordModal(false);
     setPasswordError('');
     setCurrentPassword('');
@@ -139,6 +151,7 @@ const Layout = ({ children }) => {
 
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
+        data: { must_change_password: false },
       });
 
       if (updateError) {
@@ -159,8 +172,8 @@ const Layout = ({ children }) => {
     }
   };
 
-  const userRole = user?.user_metadata?.role || 'atendente';
-  const userName = user?.user_metadata?.name || user?.email || 'Usuário';
+  const userRole = profile?.role || user?.user_metadata?.role || 'atendente';
+  const userName = profile?.name || user?.user_metadata?.name || user?.email || 'Usuário';
 
   const navigation = allNavigation.filter((item) => item.roles.includes(userRole));
 
@@ -316,7 +329,7 @@ const Layout = ({ children }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={closeChangePasswordModal}
+            onClick={mustChangePassword ? undefined : closeChangePasswordModal}
           >
             <motion.div
               initial={{ scale: 0.96, opacity: 0 }}
@@ -328,13 +341,15 @@ const Layout = ({ children }) => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-white">Trocar a senha</h2>
-                <button
-                  type="button"
-                  onClick={closeChangePasswordModal}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                {!mustChangePassword && (
+                  <button
+                    type="button"
+                    onClick={closeChangePasswordModal}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
 
               <form onSubmit={handlePasswordChange} className="space-y-4">

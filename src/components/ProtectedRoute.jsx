@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/SupabaseAuthContext';
 
 const ProtectedRoute = ({ children, roles }) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -19,7 +19,9 @@ const ProtectedRoute = ({ children, roles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (roles && user.user_metadata?.role && !roles.includes(user.user_metadata.role)) {
+  const userRole = profile?.role || user.user_metadata?.role;
+
+  if (roles && userRole && !roles.includes(userRole)) {
     return <Navigate to="/" replace />;
   }
 
