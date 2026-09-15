@@ -5,17 +5,34 @@ import { supabase } from '@/lib/customSupabaseClient';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 
+const emptyGeneralSettings = {
+  companyName: '',
+  cnpj: '',
+  address: '',
+  email: '',
+  telefone: '',
+  contato: '',
+  logo: '',
+};
+
+const getCompanyId = (source) =>
+  source?.xid_empresa ?? source?.id_empresa ?? source?.empresa_id ?? null;
+
 const GeneralSettings = () => {
   const { settings, updateSettings } = useSettings();
-  const { user } = useAuth();
-  const [general, setGeneral] = useState(settings.general);
+  const { user, profile, loading: authLoading } = useAuth();
+  const [general, setGeneral] = useState(emptyGeneralSettings);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   const resolveCompanyId = async () => {
-    const fromUser = user?.user_metadata?.xid_empresa ?? user?.xid_empresa ?? null;
+    const fromProfile = getCompanyId(profile);
 
+    if (fromProfile) return fromProfile;
+
+    const fromUser = getCompanyId(user?.user_metadata) ?? getCompanyId(user?.app_metadata) ?? getCompanyId(user);
     if (fromUser) return fromUser;
+
     if (!user?.id) return null;
 
     const { data, error } = await supabase
@@ -26,65 +43,86 @@ const GeneralSettings = () => {
 
     if (error) {
       console.warn('Não foi possível resolver xid_empresa do perfil do usuário.', error);
-      return null;
+    } else {
+      const fromDatabaseProfile = getCompanyId(data);
+      if (fromDatabaseProfile) return fromDatabaseProfile;
     }
 
-    return data?.xid_empresa ?? null;
+    return null;
   };
 
   useEffect(() => {
+    let cancelled = false;
+
     const loadCompanyInfo = async () => {
+      if (authLoading) return;
+
       setLoading(true);
       const companyId = await resolveCompanyId();
 
       if (!companyId) {
-        setGeneral({
-          ...settings.general,
-          cnpj: formatCnpj(settings.general.cnpj),
-        });
-        setLoading(false);
+        if (!cancelled) {
+          setGeneral(emptyGeneralSettings);
+          setLoading(false);
+        }
         return;
       }
 
       const { data, error } = await supabase
         .from('empresa')
-        .select('nome, cnpj, endereco, email, telefone, contato, logo')
+        .select('*')
         .eq('id', companyId)
         .maybeSingle();
 
+      if (cancelled) return;
+
       if (!error && data) {
         setGeneral({
-          companyName: data.nome || settings.general.companyName,
-          cnpj: formatCnpj(data.cnpj || settings.general.cnpj),
-          address: data.endereco || settings.general.address,
+          companyName: data.nome || '',
+          cnpj: formatCnpj(data.cnpj),
+          address: data.endereco || '',
           email: data.email || '',
           telefone: data.telefone || '',
           contato: data.contato || '',
           logo: data.logo || '',
         });
       } else {
-        setGeneral({
-          ...settings.general,
-          cnpj: formatCnpj(settings.general.cnpj),
-        });
+        if (error) {
+          console.warn('Não foi possível carregar os dados da empresa.', error);
+        }
+        setGeneral(emptyGeneralSettings);
       }
 
       setLoading(false);
     };
 
     loadCompanyInfo();
-  }, [settings.general, user]);
+  }, [authLoading, user, profile]);
+
+  //const formatCnpj = (value) => {
+  //  const digits = String(value || '').replace(/\D/g, '').slice(0, 14);
+
+  //  if (digits.length <= 2) return digits;
+  //  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  //  if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  // if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+
+  //  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`;
+  //};
 
   const formatCnpj = (value) => {
-    const digits = String(value || '').replace(/\D/g, '').slice(0, 14);
+  const cnpj = String(value || '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 14);
 
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
-    if (digits.length <= 8) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
-    if (digits.length <= 12) return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  if (cnpj.length <= 2) return cnpj;
+  if (cnpj.length <= 5) return `${cnpj.slice(0, 2)}.${cnpj.slice(2)}`;
+  if (cnpj.length <= 8) return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5)}`;
+  if (cnpj.length <= 12) return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8)}`;
 
-    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12, 14)}`;
-  };
+  return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12, 14)}`;
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -170,6 +208,30 @@ const GeneralSettings = () => {
           onChange={handleChange}
           className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         ></textarea>
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={general.email || ''}
+          onChange={handleChange}
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          name="telefone"
+          placeholder="Telefone"
+          value={general.telefone || ''}
+          onChange={handleChange}
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <input
+          type="text"
+          name="contato"
+          placeholder="Contato"
+          value={general.contato || ''}
+          onChange={handleChange}
+          className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
       </div>
       <Button onClick={handleSave} className="bg-gradient-to-r from-blue-500 to-blue-600">Salvar Alterações</Button>
     </div>

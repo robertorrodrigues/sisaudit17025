@@ -23,7 +23,7 @@ const Login = ({ companySlug: companySlugProp }) => {
     return firstSegment && !['login', 'signup'].includes(firstSegment) ? firstSegment : null;
   }, [companySlugProp, location.pathname]);
 
-  const logoSrc = companySlug ? `/images/${companySlug}/logo.png` : '/images/logoSigas.png';
+  const logoSrc = companySlug ? `/images/${companySlug}/logo_audit.png` : '/images/logo_audit.png';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -60,21 +60,18 @@ const Login = ({ companySlug: companySlugProp }) => {
         className="w-full max-w-md bg-white/10 backdrop-blur-xl rounded-2xl p-8 border border-white/20 shadow-2xl"
       >
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center justify-center mb-6">
             <img
               src={logoSrc}
-              alt={companySlug ? `Logo ${companySlug}` : 'Logo SIGas'}
-              className="h-16 w-auto rounded-xl object-contain bg-white/10 p-2 shadow-lg"
+              alt={companySlug ? `Logo ${companySlug}` : 'Logo Audit+'}
+              className="h-36 w-auto rounded-xl object-contain bg-white/10 p-1 shadow-lg"
               onError={(event) => {
-                event.currentTarget.src = '/images/logoSigas.png';
+                event.currentTarget.src = '/images/logo_audit.png';
               }}
             />
           </div>
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Flame className="w-10 h-10 text-orange-400" />
-            <h1 className="text-3xl font-bold text-white">SIGas</h1>
-          </div>
-          <p className="text-gray-300 mt-2">Sistema de Inspeção de Gás</p>
+          
+          <p className="text-gray-300 mt-2">Sistema de Auditoria 17025</p>
           {companySlug && <p className="text-sm text-blue-200 mt-1">Empresa: {companySlug}</p>}
         </div>
 

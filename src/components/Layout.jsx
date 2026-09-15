@@ -187,8 +187,9 @@ const Layout = ({ children }) => {
       <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white/5 backdrop-blur-sm border-b border-white/10 shrink-0">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
-            <Flame className="w-7 h-7 text-orange-400" />
-            <h1 className="text-xl font-bold text-white hidden sm:block">SIGas</h1>
+            <img src='/images/logo_lupa.png' alt= 'Audit+'
+              className="h-14 w-auto  object-contain bg-white/10 p-1 shadow-lg" />
+            <h1 className="text-xl font-bold text-white hidden sm:block">Audit+</h1>
           </Link>
         </div>
 
@@ -285,8 +286,9 @@ const Layout = ({ children }) => {
             >
               <div className="flex items-center justify-between h-16 px-6 border-b border-white/20 shrink-0">
                 <div className="flex items-center gap-2">
-                  <Flame className="w-7 h-7 text-orange-400" />
-                  <h1 className="text-xl font-bold text-white">SIGas</h1>
+                  <img src='/images/logo_lupa.png' alt= 'Audit+'
+              className="h-36 w-auto rounded-xl object-contain bg-white/10 p-1 shadow-lg" />
+                  <h1 className="text-xl font-bold text-white">Audit+</h1>
                 </div>
                 <button
                   onClick={() => setSidebarOpen(false)}
