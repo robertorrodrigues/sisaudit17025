@@ -1714,7 +1714,7 @@ const ChecklistForm = ({ os, onClose, onSubmit }) => {
           </div>
           <div className="w-full bg-white/10 rounded-full h-2">
             <div
-              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentStep + 1) / checklistItems.length) * 100}%` }}
             />
           </div>
@@ -1736,7 +1736,7 @@ const ChecklistForm = ({ os, onClose, onSubmit }) => {
                         complete
                           ? 'bg-green-500/20 text-green-100 border border-green-400/40'
                           : currentStep === index
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
                             : 'bg-white/10 text-gray-300 hover:bg-white/20'
                       }`}
                     >
@@ -1781,7 +1781,7 @@ const ChecklistForm = ({ os, onClose, onSubmit }) => {
         {/* Current Category */}
         <div className="bg-white/5 rounded-xl p-4 sm:p-6 mb-4 overflow-y-auto flex-1">
           <h3 className="text-lg sm:text-xl font-semibold text-white mb-4">
-            {currentCategory.category}
+            {currentCategory.titulo ? `  ${currentCategory.titulo}` : ''}
           </h3>
 
           <div className="space-y-4">
@@ -1859,7 +1859,7 @@ const ChecklistForm = ({ os, onClose, onSubmit }) => {
                       
                       value={
                           observations[item.id] ??
-                          `${item.ocorrencia}  Prazo: ${item.prazo}`
+                          `${item.ocorrencia}  Descrição:`
                         }
 
                       onChange={(e) => handleObservationChange(item.id, e.target.value)}

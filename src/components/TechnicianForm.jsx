@@ -221,7 +221,7 @@ const TechnicianForm = ({ tecnico, onClose, onSubmit }) => {
                   onClick={() => handleSpecialtyChange(specialty)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     (formData.specialties || []).includes(specialty)
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
                       : 'bg-white/10 text-gray-300 hover:bg-white/20'
                   }`}
                 >

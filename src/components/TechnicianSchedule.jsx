@@ -57,7 +57,7 @@ const TechnicianSchedule = ({ osList = [], selectedDate }) => {
           {/* Técnico */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold">
                   {tecnico.split(' ').map(n => n[0]).join('')}
                 </span>

@@ -183,7 +183,7 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-emerald-900 flex flex-col">
       <header className="sticky top-0 z-30 flex items-center justify-between h-16 px-4 sm:px-6 bg-white/5 backdrop-blur-sm border-b border-white/10 shrink-0">
         <div className="flex items-center gap-4">
           <Link to="/" className="flex items-center gap-2">
@@ -219,7 +219,7 @@ const Layout = ({ children }) => {
               className="flex items-center space-x-2 cursor-pointer"
               onClick={() => setProfileMenuOpen(!profileMenuOpen)}
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+              <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold">
                 {userName?.[0]?.toUpperCase() || 'U'}
               </div>
               <div className="hidden sm:block text-white">
@@ -308,7 +308,7 @@ const Layout = ({ children }) => {
                         onClick={() => setSidebarOpen(false)}
                         className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 ${
                           isActive
-                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg'
                             : 'text-gray-300 hover:bg-white/10 hover:text-white'
                         }`}
                       >
@@ -415,7 +415,7 @@ const Layout = ({ children }) => {
                   </div>
                 </div>
 
-                <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 py-2 text-xs text-blue-100">
+                <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-xs text-green-100">
                   {passwordRulesText}
                 </div>
 
@@ -429,7 +429,7 @@ const Layout = ({ children }) => {
                   <Button type="button" variant="outline" onClick={closeChangePasswordModal} className="border-white/20 text-white hover:bg-white/10">
                     Cancelar
                   </Button>
-                  <Button type="submit" disabled={changingPassword} className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">
+                  <Button type="submit" disabled={changingPassword} className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white">
                     {changingPassword ? 'Salvando...' : 'Salvar senha'}
                   </Button>
                 </div>

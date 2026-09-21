@@ -120,7 +120,7 @@ const TechnicianList = ({ searchTerm, filterStatus }) => {
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-4 flex-1">
                 {/* Avatar */}
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold text-lg">
                     {technician.name.split(' ').map(n => n[0]).join('')}
                   </span>

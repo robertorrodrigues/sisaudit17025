@@ -58,7 +58,7 @@ const Configuracoes = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center px-6 py-4 text-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
                   : 'text-gray-300 hover:text-white hover:bg-white/5'
               }`}
             >
